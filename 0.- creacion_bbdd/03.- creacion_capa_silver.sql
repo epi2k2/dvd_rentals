@@ -72,8 +72,8 @@ create table if not exists silver.films.link_film(
 create table if not exists silver.films.sat_film(
   film_key string,
   rental_duration int,
-  rental_rate float,
-  replacement_cost float,
+  rental_rate double,
+  replacement_cost double,
   rating_key string,
   special_features string,
   full_text string,
@@ -96,12 +96,12 @@ create table if not exists silver.films.hub_category(
 ) using delta;
 
 create table if not exists silver.films.link_film__category(
-  film__categorty_key string,
+  film__category_key string,
   film_key string,
   category_key string,
   rec_src string,
   load_date timestamp,
-  constraint pk_link_film__category primary key (film__categorty_key),
+  constraint pk_link_film__category primary key (film__category_key),
   constraint fk_link_film__category_film_key foreign key (film_key) references silver.films.link_film,
   constraint fk_link_film__category_category_key foreign key (category_key) references silver.films.hub_category
 ) using delta;
@@ -148,7 +148,9 @@ create table if not exists silver.customers.hub_country(
 create table if not exists silver.customers.hub_city(
   city_key string,
   city string,
-  country_id string,
+  country_id int,
+  rec_src string,
+  load_date timestamp,
   constraint pk_hub_city primary key (city_key)
 ) using delta;
 
@@ -156,6 +158,8 @@ create table if not exists silver.customers.link_country__city(
   country__city_key string,
   country_key string,
   city_key string,
+  rec_src string,
+  load_date timestamp,
   constraint pk_link_country__city primary key (country__city_key),
   constraint fk_link_country__city_country_key foreign key (country_key) references silver.customers.hub_country,
   constraint fk_link_country__city_city_key foreign key (city_key) references silver.customers.hub_city
@@ -168,8 +172,10 @@ create table if not exists silver.customers.link_address(
   address2 string,
   district string,
   city_key string,
-  postal_code string,
-  phone string,
+  postal_code int,
+  phone long,
+  rec_src string,
+  load_date timestamp,
   constraint pk_link_address primary key (address_key),
   constraint fk_link_address_city_key foreign key (city_key) references silver.customers.hub_city
 ) using delta;
@@ -179,7 +185,7 @@ create table if not exists silver.customers.link_customer(
   customer_key string,
   first_name string,
   last_name string,
-  create_date timestamp, 
+  create_date date, 
   rec_src string,
   load_date timestamp,
   constraint pk_link_customer primary key (customer_key)
@@ -190,8 +196,8 @@ create table if not exists silver.customers.sat_customer(
   store_key string,
   email string,
   address_key string,
-  active_bool boolean,
-  active boolean,
+  active_bool string,
+  active int,
   hash_diff string,
   rec_src string,
   start_date timestamp,
@@ -253,7 +259,7 @@ create table if not exists silver.stores.sat_staff(
   address_key string,
   email string,
   store_key string,
-  active boolean,
+  active string,
   username string,
   password string,
   picture string,
@@ -289,13 +295,12 @@ create table if not exists silver.stores.link_inventory(
 create table if not exists silver.stores.sat_inventory(
   inventory_key string,
   store_key string,
-  active boolean,
   hash_diff string,
   rec_src string,
   start_date timestamp,
   end_date timestamp,
   constraint pk_sat_inventory primary key (inventory_key, start_date),
-  constraint fk_sat_inventory_inventory_key foreign key (inventory_key) references silver.rentals.link_inventory,
+  constraint fk_sat_inventory_inventory_key foreign key (inventory_key) references silver.stores.link_inventory,
   constraint fk_sat_inventory_store_key foreign key (store_key) references silver.stores.hub_store
 ) using delta;
 
@@ -338,7 +343,7 @@ create table if not exists silver.rentals.link_payment(
   customer_key string,
   staff_key string,
   rental_key string,
-  amount float,
+  amount double,
   rec_src string,
   load_date timestamp,
   constraint pk_link_payment primary key (payment_key),
